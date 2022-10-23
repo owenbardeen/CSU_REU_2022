@@ -1,0 +1,221 @@
+# Code that I wrote in an attempt to control the AWG via its own programming interface, similar to Java.
+# I worked on this for a few hours but my PI updated me and said I should make a GUI we could run on any computer.
+# I kept this code for reference when writing the GUI.
+import dax14000_lib_DLL64.h;
+import java.util.*;
+import WeightedObservedPoints;
+import PolynomialCurveFitter;
+
+
+void main() {
+    int card_num;
+    int chan_num;
+    int[] waveform;
+    int frequency;
+    Scanner myScan = new Scanner(System.in);
+
+    int my_function(int x) {
+        return 1+x;
+    }
+
+    int[] create_waveform() {
+        int[] to_return = new int[1000];
+        for (int x = 0; x < 1024; x+) {
+            to_return[x] = my_function(x);
+        }
+        return to_return;
+    }
+
+    // loads the waveform into an array of values
+    waveform = create_waveform();
+
+    // attempts to recognize the system
+    int num_cards = DAx14000_GetNumCards();
+    if (num_cards == 0) {
+        System.out.println("No system detected.");
+        return;
+    } else {
+        System.out.println("System successfully detected. Press any character key to continue.");
+        char whatever = myScan.next();
+    }
+
+    // attempts to open the driver
+    int open_success = DAx14000_Open(1);
+    if (open_success != 0) {
+        System.out.println("Failed to open API driver.");
+        return;
+    } else {
+        System.out.println("Successfully opened API driver. Press any character key to continue.");
+        char whatever = myScan.next();
+    }
+
+    // attempts to initialize system
+    int init_success = DAx14000_Initialize(1);
+    if (init_success != 0) {
+        System.out.println("Failed to initialize.");
+        return;
+    } else {
+        System.out.println("Successfully initialized. Press any character key to continue.");
+        char whatever = myScan.next();
+    }
+
+    // sets the smpling rate of D/A's
+    frequency = DAx14000_SetClkRate(1, 25000000);
+    System.out.println("Frequency set by synthesizer: " + frequency);
+
+    int segment_success = DAx14000_CreateSingleSegment(
+        1, //CardNum
+        1, //ChanNum
+        1024, //number of points
+        0, //number of loops
+        2047, //beginning value
+        2047, //end value
+        waveform, //our waveform
+        1, //triggered
+    )
+
+    int run_success = DAx14000_Run(1, true);
+    if (run_success == 0) {
+        System.out.println("Error running.");
+        return;
+    } else {
+        System.out.println("Successfully ran. Press any character key to continue 
+        and close the program.");
+        char whatever = myScan.next();
+    }
+
+    DAx14000_Stop(1);
+    DAx14000_Close(1);
+}
+
+
+// methods of looping
+
+double[] alter(double[] input_waveform, double[] output_waveform) {
+    double amplitude = average(output_waveform);
+    double[] new_waveform = new double[input_waveform.length];
+    for (int i = 0; i < input_waveform.length; i++) {
+        double difference = output_waveform[i] - amplitude;
+        new_waveform[i] = input_waveform[i] - difference;
+    }
+    return new_waveform;
+}
+
+double[] alter2(double[] input, double[] output) {
+    double[] to_return = new double[input.length];
+    //WeightedObservedPoints obs = new WeightedObservedPoints();
+    double amplitude = average(output);
+    double[] gain_multipliers = new double[input.length];
+    for (int i = 0; i < input_waveform.length; i++) {
+        gain_multipliers[i] = output[i] / input[i];
+        to_return[i] = amplitude / gain_multipliers[i];
+    }
+    //PolynomialCurveFitter thisfitter = PolynomialCurveFitter.create(5);
+    //double[] coefficients = thisfitter.fit(obs.toList());
+    return to_return;
+}
+
+double[] alter3(double[] input) {
+    double[] tracker = input;
+    double[] uppers = new double[input.length];
+    double[] lowers = new double[input.length];
+    for (int i = 0; i < uppers.length; i++) {
+        uppers[i] = 100000000;
+        lowers[i] = 0;
+    }
+    double[] new_waveform = new double[input.length];
+    double[] output = run(tracker);
+    double amplitude = average(output);
+    for (int j = 0; j < 1000; j++) {
+        output = run(tracker); //our output waveform
+        for (int i = 0; i < input.length; i++) {
+            double gain_multiply = output[i] / tracker[i]
+            double to_add = amplitude / gain_multiply; //or some other function
+            if (uppers[i] > to_add && lowers[i] < to_add) {
+                new_waveform[i] = to_add; 
+                if (new_waveform[i] > tracker[i]) {
+                uppers[i] = new_waveform[i];
+                } else {
+                lowers[i] = new_waveform[i];
+                }
+            }
+        }
+        tracker = new_waveform;
+    }
+    return new_waveform;
+}
+
+
+/** linear gain */
+double linear_fit(double[] input) {
+    double[] tracker = input;
+    double[] uppers = new double[input.length];
+    double[] lowers = new double[input.length];
+    double[] new_waveform = new double[input.length];
+    double[] output = run(tracker);
+    double amplitude = average(output);
+
+    // get preliminary values for upper, lower
+    for (int i = 0; i < input.length; i++) {
+        double gain_multiply = output[i] / tracker[i];
+        double to_add = amplitude / gain_multiply;
+        uppers[i] = 1.5 * to_add;
+        lowers[i] = .5 * to_add;
+    }
+
+    // learn
+    for (int j = 0; j < 1000; j++) {
+        output = run(tracker); //our output waveform
+        for (int i = 0; i < input.length; i++) {
+            double gain_multiply = output[i] / tracker[i];
+            double to_add = (amplitude / gain_multiply); 
+            // or some other function
+            if (uppers[i] > to_add) {
+                uppers[i] = (to_add + uppers[i]) / 2;
+            }
+            if (lowers[i] < to_add) {
+                lowers[i] = (to_add + lowers[i]) / 2;
+            }
+            new_waveform[i] = (uppers[i] + lowers[i]) / 2; 
+        }
+        tracker = new_waveform;
+    }
+    return new_waveform;
+}
+
+/** exponential gain (should be what we want) */
+double[] exponential_fit(double[] input) {
+    double[] tracker = new double[input.length];
+    double[] uppers = new double[input.length];
+    double[] lowers = new double[input.length];
+    double[] new_waveform = new double[input.length];
+    double[] output = run(tracker);
+    double amplitude = average(output); // or just our target amplitude
+    // eq: output = constant * e^tracker
+    for (int i = 0; i < input.length; i++) {
+        double gain_multiply = output[i] / exp(tracker[i]);
+        double to_add = ln(amplitude / gain_multiply);
+        uppers[i] = 1.5 * to_add;
+        lowers[i] = .5 * to_add;
+        tracker[i] = to_add;
+    }
+
+    // machine learn
+    for (int j = 0; j < 1000; j++) {
+        output = run(tracker); //our output waveform
+        for (int i = 0; i < input.length; i++) {
+            double gain_multiply = output[i] / exp(tracker[i]);
+            double to_add = ln(amplitude / gain_multiply); 
+            if (uppers[i] > to_add) {
+                uppers[i] = (to_add + uppers[i]) / 2;
+            }
+            if (lowers[i] < to_add) {
+                lowers[i] = (to_add + lowers[i]) / 2;
+            }
+            new_waveform[i] = to_add
+        }
+        tracker = new_waveform;
+    }
+    return new_waveform;
+}
+
