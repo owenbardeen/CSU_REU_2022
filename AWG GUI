@@ -1,0 +1,191 @@
+# code for the basic Tkinter GUI I implemented. 
+# I found it much easier to actually run the feedback loop using individual files since the Tkinter GUI kept crashing, couldn't store
+# intermediate waveforms, and was overall very clunky to use. However, my assignment was to make a GUI.
+AWG Feedback Loop
+import numpy as np
+import math
+from tkinter import filedialog as fd
+from tkinter import *
+
+
+# our target constant amplitude
+amplitude = 10
+
+# arbitrary functions used in testing
+def run(input):
+    return [2 * (math.exp(.898*i)) for i in input]
+    
+# another intermediate function I used, kept here because snippets of its code are useful
+def ultra_fit(input):
+    # 500 randomly generated input waveforms to create a gain function
+    input_trackers = [np.array(np.random.uniform(low=5, high=10, size=len(input))) for i in range(500)]
+    
+    # the output waveform resulting from applying the gain to each input waveform
+    output_trackers = [[0 for i in range(len(input))] for i in range(500)]
+    
+    # the parameters for each gain function for each point on the waveform
+    parameters = [[0 for i in range(2)] for i in range(len(input))]
+    
+    # trackers to be used for fitting the gain function for each point on the waveform
+    x = [0 for i in range(500)]
+    y = [0 for i in range(500)]
+    
+    # our optimized input waveform
+    final_input = [0 for i in range(len(input))]
+    
+    # gets the values for output_trackers
+    for i in range(500):
+        output_trackers[i] = run(input_trackers[i])
+    
+    # determines our parameters
+    for i in range(len(input)):
+        # this for loop finds the corresponding 500 inputs/outputs for a given point on the waveform
+        for j in range(500):
+            x[j] = input_trackers[j][i]
+            y[j] = output_trackers[j][i]
+        parameters[i] = np.polyfit(x, np.log(y), 1) 
+    
+    # constructs the final waveform using our generated parameters
+    for i in range(len(input)):
+        final_input[i] = (np.log(amplitude) - parameters[i][1]) / parameters[i][0]
+    
+    return final_input
+
+# Here is the "actual" code
+
+def load_csv(filename):
+    with open(filename) as file_name:
+        my_array = np.loadtxt(file_name, delimiter = ",")
+    return my_array
+
+window = Tk()
+window.title("Feedback Loop")
+input_array = []
+output_array = []
+uppers = []
+lowers = []
+all_inputs = []
+all_outputs = []
+target_amplitude = 4000
+run_number = 0
+
+
+def select_input():
+    filetypes = (('text files', '*.txt'), ('All files', '*.*'))
+
+    filename = fd.askopenfilename(
+        title='Open a file',
+        initialdir='/',
+        filetypes=filetypes)
+
+    # showinfo(
+    #     title='Selected File',
+    #     message=filename
+    # )
+
+    input_array = load_csv(filename)
+
+def select_output():
+    filetypes = (('text files', '*.txt'), ('All files', '*.*'))
+
+    filename = fd.askopenfilename(
+        title='Open a file',
+        initialdir='/',
+        filetypes=filetypes)
+
+    # showinfo(
+    #     title='Selected File',
+    #     message=filename
+    # )
+
+    output_array = load_csv(filename)
+
+def run():
+    optimized_input = [0 for i in range(len(input_array))]
+    run_number = len(all_inputs)
+    # we know the gain function is A * exp(B * x)
+    # so increasing the input from c->d increases the output by a factor of (e^B(d-c))
+    all_inputs.append(input_array)
+    all_outputs.append(output_array)
+    if (run_number < 1):
+        uppers.append([10 for x in input_array]) # or some number
+        lowers.append([0 for x in input_array]) # or some number
+    else:
+        last_input = all_inputs[run_number - 1]
+        last_output = all_outputs[run_number - 1]
+        for i in range(len(input_array)):
+            a = np.log(output_array[i] / last_output[i])
+            b = input_array[i] - last_input[i]
+            this_b = a/b
+            this_a = output_array[i] / (math.exp(this_b * input_array[i]))
+            # equations are good
+            # current_parameters[i] = [this_a, this_b]
+            optimized_input[i] = np.log(target_amplitude / this_a) / this_b
+            if uppers[0][i] >= optimized_input[i]:
+                uppers[0][i] = .5 * (uppers[0][i] + optimized_input[i])
+            else:
+                uppers[0][i] += 1.5 * (optimized_input[i] - uppers[0][i])
+            if lowers[0][i] < optimized_input[i]:
+                lowers[0][i] = .5 * (lowers[0][i] + optimized_input[i])
+            else:
+                lowers[0][i] -= 1.5 * (lowers[0][i] - optimized_input[i])
+        
+        
+
+def get_final_parameters():
+    final_input = [0 for i in range(len(input_array))]
+    parameters = [[0 for i in range(2)] for i in range(len(input_array))]
+    # determines our parameters
+    x = [0 for i in range(len(all_inputs))]
+    y = [0 for i in range(len(all_inputs))]
+    for i in range(len(input_array)):
+        # this for loop finds the corresponding 500 inputs/outputs for a given point on the waveform
+        for j in range(len(all_inputs)):
+            x[j] = all_inputs[j][i]
+            y[j] = all_outputs[j][i]
+        parameters[i] = np.polyfit(x, np.log(y), 1) 
+    
+    # constructs the final waveform using our generated parameters
+    for i in range(len(input)):
+        final_input[i] = (np.log(amplitude) - parameters[i][1]) / parameters[i][0]
+
+    return final_input
+
+# open button
+input_open_button = Button(
+    window,
+    text='Open the input waveform',
+    command=select_input
+)
+
+output_open_button = Button(
+    window,
+    text='Open the output waveform',
+    command=select_output
+)
+
+run_button = Button(
+    window, 
+    text = "Run the feedback loop"
+    command = run
+)
+
+input_open_button.pack(expand=True)
+output_open_button.pack(expand=True)
+run_button.pack(expand=True)
+
+window.mainloop()
+
+# final = ultra_fit(np.array([0 for i in range(200)]))
+# print(amplitude - 2 * math.exp(.898 * final[0]))
+
+
+
+
+
+
+
+
+
+
+
