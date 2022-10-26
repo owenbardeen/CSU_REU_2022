@@ -1,0 +1,18 @@
+# Processor functions
+# take singular waveform files (csv) and files containing multiple waveforms and processes them into arrays
+
+import pandas as pd
+
+def read_single_waveform(filename):
+    my_wf = pd.read_csv(filename)
+    my_wf = my_wf.iloc[:, 1].values
+    return my_wf
+
+def read_multiple_waveforms(filename):
+    all_wfs_1 = pd.read_csv(filename)
+    all_wfs = []
+    i=0
+    for column in all_wfs_1:
+        all_wfs[i] = all_wfs_1.loc[:, column].values
+        i+=1
+    return all_wfs
