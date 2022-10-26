@@ -1,0 +1,21 @@
+# used in AWG feedback loop
+# takes an input waveform file, its output as measured on an oscilloscope, and suggests a new input waveform
+def get_new_input(input_wf, output_wf, target_amplitude):
+    # first get waveforms on same time scale
+    # assumed that waveforms start and end at the same time
+    # input waveform will always be less granular than output
+    output_len = len(output_wf)
+    input_len = len(input_wf)
+    indices = [(a*output_len//input_len) for a in range(input_len)]
+    new_output = [output_wf[i] for i in indices]
+
+    new_input = []
+
+    for i in range(input_len):
+        if (new_output[i] > target_amplitude):
+            new_input[i] = input_wf[i] - 16 
+        elif (new_output[i] < target_amplitude):
+            new_input[i] = input_wf[i] + 16
+    # we add/subtract 16 because the AWG takes in inputs whose amplitude values are multiples of 16
+    
+    return new_input
