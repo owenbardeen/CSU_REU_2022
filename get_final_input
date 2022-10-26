@@ -1,0 +1,42 @@
+# Gets final input_wf (regression-style)
+# Once we have run our get_new_input multiple times, we will have that many input and output waveforms. 
+# We can perform regression methods on these waveforms to try to predict the gain function for each point on the waveform.
+# I like to have about 10 waveforms for this.
+# Once we have this, if it still needs adjustment, running it through get_new_input once or twice should do the trick. 
+
+import numpy as np
+
+def make_final_input(input_waveforms, output_waveforms, target_amplitude):
+    input_1 = input_waveforms[0]
+    output_1 = output_waveforms[0]
+    all_inputs = input_waveforms
+    
+    # getting inputs and outputs on same timescale
+    all_outputs = []
+    
+    for j in range(len(input_waveforms))
+      output_len = len(output_waveforms[j])
+      input_len = len(all_inputs[j])
+      indices = [(a*output_len//input_len) for a in range(input_len)]
+      new_output = [output_waveforms[j][i] for i in indices]
+      all_outputs[j] = new_output
+
+    final_input = [0 for i in range(len(input_1))]
+    # gain follows output = A * exp(B * input)
+    parameters = [[0 for i in range(2)] for i in range(len(input_1))]
+
+    x = [0 for i in range(len(all_inputs))]
+    y = [0 for i in range(len(all_inputs))]
+
+    for i in range(len(input_array)):
+        # this for loop finds the corresponding 500 inputs/outputs for a given point on the waveform
+        for j in range(len(all_inputs)):
+            x[j] = all_inputs[j][i]
+            y[j] = all_outputs[j][i]
+        parameters[i] = np.polyfit(x, np.log(y), 1) 
+    
+    # constructs the final waveform using our generated parameters
+    for i in range(len(input_1)):
+        final_input[i] = (np.log(amplitude) - parameters[i][1]) / parameters[i][0]
+
+    return final_input
