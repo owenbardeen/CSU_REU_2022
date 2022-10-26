@@ -11,6 +11,112 @@ from tkinter import *
 # our target constant amplitude
 amplitude = 10
 
+
+def read_single_waveform_input(filename):
+    my_wf = pd.read_csv(filename)
+    my_wf = my_wf.iloc[:, 1].values
+    input_array = my_wf
+    
+def read_multiple_waveforms_input(filename):
+    all_wfs_1 = pd.read_csv(filename)
+    all_wfs = []
+    i=0
+    for column in all_wfs_1:
+        all_wfs[i] = all_wfs_1.loc[:, column].values
+        i+=1
+    all_inputs = all_wfs
+
+def read_single_waveform_output(filename):
+    my_wf = pd.read_csv(filename)
+    my_wf = my_wf.iloc[:, 1].values
+    output_array = my_wf
+    
+def read_multiple_waveforms_output(filename):
+    all_wfs_1 = pd.read_csv(filename)
+    all_wfs = []
+    i=0
+    for column in all_wfs_1:
+        all_wfs[i] = all_wfs_1.loc[:, column].values
+        i+=1
+    all_outputs = all_wfs
+
+window = Tk()
+window.title("Feedback Loop")
+input_array = []
+output_array = []
+uppers = []
+lowers = []
+all_inputs = []
+all_outputs = []
+target_amplitude = 4000
+run_number = 0
+        
+def give_new_waveform():
+    new_input = get_new_input(input_wf, output_wf, target_amplitude)
+    with open("new_input.csv", "w") as file:
+        Writer = writer(file)
+        for x in new_input:
+            Writer.writerow([x])
+
+def get_final_input():
+    final_input = make_final_input(all_inputs, all_outputs, target_amplitude)
+    with open("final_input.csv", "w") as file:
+        Writer = writer(file)
+        for x in new_input:
+            Writer.writerow([x])
+
+# open button
+input_open_button = Button(
+    window,
+    text='Open the input waveform',
+    command=read_single_waveform_input
+)
+
+output_open_button = Button(
+    window,
+    text='Open the output waveform',
+    command=read_single_waveform_output
+)
+
+open_all_inputs_button = Button(
+    window,
+    text = 'Open a file containing multiple input wfs',
+    command = read_multiple_waveforms_input
+)
+
+open_all_outputs_button = Button(
+    window,
+    text = 'Open a file containing mutliple output wfs',
+    command = read_multiple_waveforms_output
+)
+
+get_new_input_button = Button(
+    window,
+    text = 'Generate a new input. Must have uploaded an input and an output.'
+    command = give_new_waveform
+)
+
+get_final_input_button = Button(
+    window,
+    text = 'Generate a final input. Must have uploaded at least 2 inputs/outputs.'
+    command = get_final_input
+)
+
+input_open_button.pack(expand=True)
+output_open_button.pack(expand=True)
+open_all_inputs_button.pack(expand=True)
+open_all_outputs_button.pack(expand=True)
+get_new_input_button.pack(expand=True)
+
+
+window.mainloop()
+
+# can ignore after this point
+
+# final = ultra_fit(np.array([0 for i in range(200)]))
+# print(amplitude - 2 * math.exp(.898 * final[0]))
+
+
 # arbitrary functions used in testing
 def run(input):
     return [2 * (math.exp(.898*i)) for i in input]
@@ -50,56 +156,9 @@ def ultra_fit(input):
         final_input[i] = (np.log(amplitude) - parameters[i][1]) / parameters[i][0]
     
     return final_input
-
-# Here is the "actual" code
-
-def load_csv(filename):
-    with open(filename) as file_name:
-        my_array = np.loadtxt(file_name, delimiter = ",")
-    return my_array
-
-window = Tk()
-window.title("Feedback Loop")
-input_array = []
-output_array = []
-uppers = []
-lowers = []
-all_inputs = []
-all_outputs = []
-target_amplitude = 4000
-run_number = 0
-
-
-def select_input():
-    filetypes = (('text files', '*.txt'), ('All files', '*.*'))
-
-    filename = fd.askopenfilename(
-        title='Open a file',
-        initialdir='/',
-        filetypes=filetypes)
-
-    # showinfo(
-    #     title='Selected File',
-    #     message=filename
-    # )
-
-    input_array = load_csv(filename)
-
-def select_output():
-    filetypes = (('text files', '*.txt'), ('All files', '*.*'))
-
-    filename = fd.askopenfilename(
-        title='Open a file',
-        initialdir='/',
-        filetypes=filetypes)
-
-    # showinfo(
-    #     title='Selected File',
-    #     message=filename
-    # )
-
-    output_array = load_csv(filename)
-
+    
+# forgot the use of this function    
+    
 def run():
     optimized_input = [0 for i in range(len(input_array))]
     run_number = len(all_inputs)
@@ -129,58 +188,6 @@ def run():
                 lowers[0][i] = .5 * (lowers[0][i] + optimized_input[i])
             else:
                 lowers[0][i] -= 1.5 * (lowers[0][i] - optimized_input[i])
-        
-        
-
-def get_final_parameters():
-    final_input = [0 for i in range(len(input_array))]
-    parameters = [[0 for i in range(2)] for i in range(len(input_array))]
-    # determines our parameters
-    x = [0 for i in range(len(all_inputs))]
-    y = [0 for i in range(len(all_inputs))]
-    for i in range(len(input_array)):
-        # this for loop finds the corresponding 500 inputs/outputs for a given point on the waveform
-        for j in range(len(all_inputs)):
-            x[j] = all_inputs[j][i]
-            y[j] = all_outputs[j][i]
-        parameters[i] = np.polyfit(x, np.log(y), 1) 
-    
-    # constructs the final waveform using our generated parameters
-    for i in range(len(input)):
-        final_input[i] = (np.log(amplitude) - parameters[i][1]) / parameters[i][0]
-
-    return final_input
-
-# open button
-input_open_button = Button(
-    window,
-    text='Open the input waveform',
-    command=select_input
-)
-
-output_open_button = Button(
-    window,
-    text='Open the output waveform',
-    command=select_output
-)
-
-run_button = Button(
-    window, 
-    text = "Run the feedback loop"
-    command = run
-)
-
-input_open_button.pack(expand=True)
-output_open_button.pack(expand=True)
-run_button.pack(expand=True)
-
-window.mainloop()
-
-# final = ultra_fit(np.array([0 for i in range(200)]))
-# print(amplitude - 2 * math.exp(.898 * final[0]))
-
-
-
 
 
 
