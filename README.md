@@ -1,5 +1,4 @@
-# REU_code
-Code used in my REU at Colorado State.
+Code used in my REU at Colorado State, as well as my instruction manual and final report.
 
 My task was to create a program that could alter a waveform such that when passed through our gain mechanism,
 the resulting waveform would have constant amplitude. Gain is non-linear and tends to amplify the front part
