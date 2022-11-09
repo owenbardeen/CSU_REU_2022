@@ -1,0 +1,157 @@
+Report
+
+Stage 1: Heat Sinks
+After reading up on the literature and gaining a (basic) understanding of what my research entailed, my first task was to find a suitable heat sink for each component and machine them so that we could mount our equipment onto them and the heat sinks onto the board. We needed a heat sink for our driver/diode and our EOM. The driver did come with its own heat sink, but we decided to add another for safety’s sake as well as more ease mounting it to our board. The RF amplifier came with its own heatsink which was suitable. I found two 4 inch by 4 inch heat sinks on Amazon, which we would use. 
+
+In each heat sink, I first planned where all holes would go, such that holes for mounting the heat sink and holes for mounting the equipment itself to the heatsink would not overlap. This proved somewhat difficult for the EOM. I then drilled the necessary holes using the drill in the machine shop, in all four heat sinks:
+The heatsink that came with the driver, to mount it to the driver and its own heatsink.
+Another Amazon heatsink for the driver heatsink, to mount it to the board and the driver heatsink.
+The Amazon heatsink for the EOM, to mount it to the board and the EOM. 
+The heatsink that came with the RF amplifier.
+We also used heatsink grease for the connection between the driver and the heatsink it came with.
+
+Additionally, we had to drill holes in the Amazon heatsink for the driver in order to add spacers, to more securely mount the driver.
+
+Challenges
+Familiarizing myself with how sizing drills for tapped / non-tapped holes worked, and how screw sizes are denoted.
+Learning how to use the drill and tap in the machine shop.
+Some of the holes needed to go all the way through the heatsinks (in order for us to fasten them to the board), and sometimes the teeth of the heatsinks would bend when using the drill, making it very difficult to thread a screw through. This forced us to redo our heatsink for the driver, and use the one that was “messed up” for the EOM.
+
+
+Stage 2: The Driver
+
+The next step was to get the driver working. First, I read through the manual to gain an understanding of how we needed to power it as well as how to control the laser current, temperature, etc. 
+
+Figuring out how to power it was the easy part. The wire connections were clear from the manual, and from a similar setup in the other lab I discovered we could use the same supply for driver power and laser power. So, we simply wired the driver and laser power together, along with the ground, to our variable power supply.
+
+The difficult part was connecting the driver to our USB. The driver came with a J14 pin cable, some of which to be used to connect to a USB cable. However, the manual did not specify the proper connections. We had correspondence with Analog Modules about how to do so, as well as how to wire an enable switch and a trigger. I soldered wires onto the corresponding pins for each, starting with those for the USB cable. We then tried connecting our GUI to the driver, but we had extreme difficulty doing this. We tried redoing the connection, another USB cable, and another computer, but to no avail. It took us about a week before we finally solved the issue by using another version of the GUI, which allowed us to connect with the driver at long last.
+
+Connecting the enable switch and the BNC trigger cable were not difficult. The only challenge associated with them is that it was somewhat difficult soldering the wires onto the tiny enable switch, which we solved by trimming the wires slightly and looping them through the nodes on the switch.
+
+Challenges:
+Learning how to solder and other skills related to making wire connections such as crimping, due to my lack of prior experience with electrical engineering.
+Difficulty deciphering what the manual meant. It was not written very clearly.
+Technical difficulties with connecting the GUI. For whatever reason, the GUI downloaded from the website had trouble connecting, but the one we got from a flash drive worked on the first try.
+Connecting wires carrying the power supply and ground to the driver proved very difficult due to the cramped design of where the driver accepted these power supplies.
+
+
+Stage 3: GUI / Generating Output
+
+Finally, we had the resources to produce an output. Easier said than done, however.
+
+The 762 manual said that there were two methods of controlling the settings of the driver: the on-board potentiometers, and the GUI. First we tried the potentiometers, setting them to the factory settings specified in the manual. This did not produce any output. We tried increasing the laser current steadily, with no result. We then realized that this might be because of the current limit setting on board. We turned it up to the maximum, then tried increasing the current again, but with still no output. We decided to try the GUI instead.
+
+The GUI approach brought some difficulties. Here is a list and how we solved them:
+The enable. Originally we thought we were not getting an output because of our laser fire threshold being too high, which was not the case. Instead, it was an issue with our enable switch. 
+Solution: Re-soldered the enable switch and eventually switched to the GUI control of the enable instead.
+The current limit. Throughout much of the project this was a frustrating aspect of the GUI. Setting it at almost any value caused a current fault, even if it was much above the set laser diode current. This issue was difficult to diagnose because a current fault would not always show after adjusting parameters or enabling the driver. 
+Solution: our original solution was to default to the potentiometer setting on the board and just set that at the highest value possible, and make sure not to enable the current limit on the GUI.
+However, eventually, we determined that if we set the current limit last, while the diode is enabled, then it does not cause an issue (most of the time). 
+Sending a trigger pulse in order to actually generate an output. This required me to figure out how to use the Stanford trigger generator, which luckily did not prove so difficult. 
+Solution: First, I shortcutted the need for the Stanford by creating a constant pulse with the GUI. Then, I figured out how to use the Stanford, and used that to make a trigger signal. We were able to measure an output of 600 mW, as expected.
+
+Stage 4: Top Cover and Power Supplies
+
+After we had the driver completely configured, my next job was to improve the design of our setup. The power supply we were using for the driver was very large and inconvenient to store nearby and move around, especially when a much smaller one would do. We also needed power supplies for the other components of the setup so that we could use them, specifically the AWG, RF amplifier, and bias modulator. Finally, our setup was exposed from the top: my PI wanted me to make a cover such that we could mount the power supplies on it, as well as switches for the driver power and its enable, and for it to serve as protection from the top.
+
+For the power supplies, I consulted a similar setup from another REU, and ordered two of their power supplies. For the top, my PI helped me go to the machine shop nearby and get a plastic board the same size as our board. Once the power supplies arrived, I used their dimensions to drill correctly sized holes. I then drilled holes to fit the wires for each power supply, so that they could easily go down to the board below.
+
+Then, I had to do about a whole day’s worth of wire cutting, stripping, soldering, crimping, and screwing into the power supplies in order to get everything powered. Luckily, this went relatively smoothly.
+
+Lastly, I had to add a switch to the driver power supply. This was pretty trivial, just some brief soldering.
+
+Challenges:
+The power supplies did not have easy ways of mounting to a plastic board. It was difficult fitting screws in the two holes that they did have and tightening them, as the holes were surrounded by other material.
+I had to use a hand drill because the other drills were always in use. The hand drill only allows one to make a hole a maximum of about 5 inches from each side of the board. This put a restriction on how I could mount the power supplies, place holes for wires, and mount the switches.
+The way the holes were drilled made it difficult to unscrew / screw in the wire leads to the power supply terminals.
+Mounting switches onto the board while testing to see if they actually worked proved to be very inconvenient.
+Solution: I took the board off and elevated it slightly using a LabSnacks box. This allowed me to use the multimeter to more easily measure connections on the board and the switches themselves.
+
+Stage 5: AWG, RF amplifier, EOM
+
+My next task was to figure out how to wire the components that would be used to modulate the beam together. Luckily, I had Han’s documents and setup as reference for how to do so. The only large difference between our setups was the RF amplifier: ours was to be controlled via GUI, and had a USB cable. Han’s was controlled with direct voltage inputs instead. This would prove to be a very significant difference.
+
+First, I had to figure out how to connect the AWG to the RF amplifier, and then that to the EOM. With the help of my PI, we found the cables that we needed and ordered them off DigiKey. 
+
+I started with the AWG, reading over the manual and how to control the waveform we pass in. Luckily, the GUI is pretty straightforward, and Han had an example waveform to pass in, which helped me gain an understanding of the structure that we needed. It was here that I started thinking about how we could make a program to generate an optimal waveform to pass in.
+
+Next was to figure out how to use the RF amplifier. I first used one of the new power supplies to power it (12 V), and one of our old USB cables to connect it to the computer. We had to redo the USB connections a few times due to misinterpretation of the cable’s manual. However, when we connected everything, we could not get the GUI on the computer to recognize the amplifier.
+
+We emailed iXblue and they said it might be an issue with the current we were supplying the amplifier with. We switched the power supply to the variable one to no avail. Then, they said it might be an issue with the USB cable. We tried re-wiring, as well as another USB cable, which did not work. It was difficult to communicate properly with iXblue because they are a French company and are about 8 hours ahead. Additionally, it was a French holiday during this period, making correspondence even more difficult. Eventually we convinced them to let us send the part back and get a replacement. During this week or so where we were waiting on responses from iXblue, I turned my attention towards making a computer program to generate an optimal waveform.
+
+Stage 6: The “Feedback Loop”
+
+While waiting for feedback from iXblue on getting the RF amplifier to work, I directed my attention towards making a program that would be able to take input waveforms, their outputs after receiving gain, and generate a waveform that when passed through would create a square waveform in the end. The reason we cannot just plug in a square waveform is because the gain affects different parts of the waveform differently: points at the front get amplified more than points at the back.
+
+First, I thought about making a feedback loop that would initialize some “upper” and “lower” values, then take the first waveform and its output, and adjust accordingly:
+If the output at a given point was too much, it would set the new value at that point to the average of the “lower” value and the original value at that point. If it was too little, it would do the same for “upper”. 
+Then, the other value - “upper” if too much and “lower” if too little - would be set to the original value at that point.
+We now have a new waveform and new values of “upper” / “lower.” Then, we plug the new waveform in through the gain, get the output waveform, and make the same comparisons, and the same adjustments
+
+This would keep running a few dozen times until it had a good approximation of what the input waveform should look like. 
+
+This would work fine in theory. However, after I read through some of the literature, I realized that the gain function was exponential (Output = A * exp(B * input)), and thus I could model it easily, with no need for so many loops. I decided to try this approach:
+Generate two random inputs with amplitudes all low enough such that gain saturation would not be a factor, and such that none of the amplitudes are the same at any given point.
+Run them through the gain setup and get the output waveforms.
+Use these inputs and outputs to determine the parameters (A and B) describing the exponential function corresponding to the gain on each point on the waveform.
+By this, I mean every point on the waveform has its own gain function describing how it gets amplified. We can determine the parameters for each function because we have two unknowns (A and B) and two equations (2 of: Output = A * exp(B * input)).
+Using these parameters, generate a waveform such that when its points are put through their corresponding exponential functions, it creates a square waveform at the desired amplitude.
+
+
+Another programming task was to make a program that could adjust the waveform over time according to fluctuations in the gain. That is, now that we have our initial optimal waveform, it will work with the gain, but how the gain impacts the waveform can change over time. So, I had to devise a program that would first check to see if the output waveform was still suitably square. If not, it would adjust the waveform. Here’s how it works:
+
+Checking to see if the waveform is still square
+Gets the value of each point on the waveform and subtracts the target amplitude from it. Then it takes the absolute value of all of these values. We are left with an array of how far from the target amplitude each point is.
+We then take the average of all of these values. If the average is above 5% of the target amplitude, then we adjust the input waveform.
+
+Adjusting the waveform
+First, we mark each point on the waveform whose output deviates from the target amplitude by more than 5%.
+For each of these points, we calculate how much we need to adjust the input. We can do this by taking ln(Desired Amplitude / Actual Amplitude), dividing it by our value of B, and adding it to our current input. Math:
+Desired Amplitude = A exp(B * desired input)
+Actual Amplitude = A exp(B * current input)
+Dividing, we get Desired/Actual Amplitude = exp(B * (desired input - current input))
+Taking ln of both sides: ln(Desired/Actual) = B * (desired input - current)
+Desired Input = current Input + ln(Desired/Actual Amplitude) / B
+
+There were no shortage of challenges with the code.
+Perhaps the biggest problem was that the output waveform, from the oscilloscope, and the input waveform, given to the AWG, had wildly different data structures. The input for the AWG had to have a number of data points that was a multiple of 16 (don’t ask me why). Our initial input only had 64 points. Additionally, it had no time scale. The output from the oscilloscope had a time scale, did not start at the same time as the AWG input, and had thousands of points. 
+Solution: see code for my solutions
+It is not trivial getting waveforms into array form, and vice versa. Additionally, the AWG only accepts .txt files (not .csv, which is easier to generate). It proved easy to process the data from the oscilloscope into an array, but not to process the input files, or to generate them for the user to download.
+Additionally, my PI wanted me to make a GUI for the program. I had absolutely zero GUI experience prior to this, and the learning curve presented a few challenges.
+I used Tkinter to make the GUI, and the way it stores variables loaded from files is very inconvenient. It took a few versions of the code to realize you can only really store variables by using .append. Assigning variables within functions called by buttons does not work.
+Some of the options for creating buttons in Tkinter just do not work. Luckily all the ones needed for basic functionality were fine.
+I wanted to make it so that the program could load multiple input/output files from a folder and process them all, but that proved near impossible in Tkinter. The program requires the user to upload files one at a time, which is very annoying, and if you close the program, all the files you uploaded disappear. If I had more time to work on the project, I would probably implement serializable methods of storing all the input/output waveforms that had been uploaded. Unfortunately, I only had serializable experience in Java, and I had decided to write the program in Python. 
+
+Stage 7: Finishing RF amplifier, putting everything together
+
+Despite our problems with the RF amplifier, we were eventually able to realize the issue. There are different kinds of USB connector cables, and both of the ones we used were of the wrong type. We ordered one of the proper kind online and received it the next day. After making the proper connections we were able to get the RF amplifier to connect with the computer GUI. This made it so that we did not need to get a replacement from iXblue, which saved us at least a couple days of waiting for a replacement part. 
+
+Now, every individual component worked, but we had to put everything together. Again, easier said than done. After hooking up the bias modulator to the EOM, our connection was having issues: it was only completely steady after disabling the laser output. This was solved by messing around with the GUI. It was discovered that enabling the laser, turning the bias modulator on, then making it restart its scan allowed it to lock.
+
+However, we had a new problem: we expect an output of about 600 mW from the diode, from its website spec. We were only getting about 200 mW at 1 A (the recommended operating current) and even at 1.7 A could only get slightly above 300 mW of output power. We determined this to be an issue with our cable, as measuring the output power of the diode itself gave us 600 mW, as expected. 
+
+We decided to determine the loss of the other optical equipment: the EOM induced a loss of nearly 90%, …
+
+This problem was sidelined because the company that made the laser diode was not very responsive. I focused on actually getting the AWG to alter the waveform. Measuring the output from the AWG using an oscilloscope gave us what was expected, but not from the RF amplifier. It took me a little while to realize the GUI was confusing and that the RF amplifier was actually off. Turning it on gave us the expected output, and allowed us to modulate the beam. However, the modulation was not perfect, and the final beam output was not exactly close to what we wanted from the AWG. 
+
+During this process, I accidentally burnt out the laser power supply, forcing me to change the driver power supply and order a new one.
+
+
+Stage 7: Final Wave Alteration, Wrapping Up
+
+At this stage, we had everything communicating with each other, but a few loose ends to wrap up. We needed to determine:
+The output voltage from the RF amplifier and what its gain function looked like
+The proper settings on the AWG and our final 10 ns pulse file
+The settings on the DC bias GUI
+
+None of these were documented in Han’s folder. Luckily, my PI had correspondence with Han, and he was able to tell us the proper DC bias settings. We had to first get everything else enabled and running and then set the DC bias on the “minimum” setting in order to isolate our pulse. We tried this, but it did not work since we still needed to figure out the necessary output voltage from the RF amplifier.
+
+I had read near the beginning of the project that the half-wave voltage of the amplifier was 4V, so I guessed that was the voltage we needed. I used the oscilloscope to measure the peak-to-peak voltage of the amplifier’s output and adjusted its settings on the GUI until I got the proper output of 4V. After sending this output to the EOM, we observed the behavior we desired on the final output from the DC bias supply.
+
+However, my PI was interested in investigating if the gain function of the amplifier was linear for our purposes. I passed in square waveforms of different amplitudes (voltages) to see how the gain affected them. I then plotted the results to see that the amplifier gain was not linear at any input voltage within our range. I realized that we would need to run my feedback loop on the seed laser output first in order to produce a shaped waveform to account for the RF amplifier gain. This would prove somewhat challenging since my program would need to target an arbitrary waveform, not a constant amplitude. 
+
+The next thing to do was to make a text file such that when passed through the setup gave us a 10 ns pulse following Han’s shape. The pulse would also have to only repeat at 300 kHz, which became somewhat of an obstacle due to the AWG’s settings to repeat a file if it could within its allotted time slot. I solved this with some math and produced a suitable file.
+
+Lastly, I had to port all GUIs, manuals, etc. onto a shared drive so that the group could manage the setup from their own computer, as I had been using a borrowed computer to run everything on up until this point. This took about a whole afternoon.
+
+At this stage, I had to conclude, since my presentation was the next day. Given more time, I would have hoped to test my program and see if it works on the RF amplification feedback loop as well as the real-life gain, and to improve the GUI.
